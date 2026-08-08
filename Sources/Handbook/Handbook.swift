@@ -16,6 +16,8 @@ public struct HandbookConfiguration: Sendable {
     public var fallbackLanguage: String
     /// Whether the toolbar offers a language selector.
     public var languagePicker: HandbookLanguagePicker
+    /// The toolbar's glyphs.
+    public var icons: HandbookIcons
     public var theme: HandbookTheme
 
     public init(bundle: Bundle = .main,
@@ -23,12 +25,14 @@ public struct HandbookConfiguration: Sendable {
                 chromeDirectory: String = "chrome",
                 fallbackLanguage: String = "en",
                 languagePicker: HandbookLanguagePicker = .automatic,
+                icons: HandbookIcons = HandbookIcons(),
                 theme: HandbookTheme = HandbookTheme()) {
         self.bundle = bundle
         self.topicsDirectory = topicsDirectory
         self.chromeDirectory = chromeDirectory
         self.fallbackLanguage = fallbackLanguage
         self.languagePicker = languagePicker
+        self.icons = icons
         self.theme = theme
     }
 }
@@ -50,6 +54,34 @@ public enum HandbookLanguagePicker: Sendable {
         case .always: true
         case .never: false
         }
+    }
+}
+
+/// The toolbar's glyphs.
+///
+/// Each is an SF Symbol name by default, so the package ships no artwork and carries no icon
+/// licence. Give a name from your own asset catalog to use your set instead — the window
+/// resolves an asset first and falls back to the symbol, so either kind works.
+public struct HandbookIcons: Sendable {
+    public var sidebar: String
+    public var back: String
+    public var forward: String
+    public var home: String
+    public var search: String
+    public var clear: String
+
+    public init(sidebar: String = "sidebar.leading",
+                back: String = "chevron.backward",
+                forward: String = "chevron.forward",
+                home: String = "house",
+                search: String = "magnifyingglass",
+                clear: String = "xmark.circle.fill") {
+        self.sidebar = sidebar
+        self.back = back
+        self.forward = forward
+        self.home = home
+        self.search = search
+        self.clear = clear
     }
 }
 

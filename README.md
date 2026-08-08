@@ -125,6 +125,14 @@ HandbookWindow(configuration: HandbookConfiguration(
 ))
 ```
 
+Toolbar glyphs are configurable the same way:
+
+```swift
+HandbookConfiguration(icons: HandbookIcons(sidebar: "IconSidebar", home: "IconHome"))
+```
+
+Each defaults to an SF Symbol name, so the package ships no artwork and carries no icon licence. Pass a name from your own asset catalog and it is used instead — an asset is resolved first, with the symbol as the fallback.
+
 Left alone, every colour follows the accent the reader chose in System Settings — headings lightened toward white on a dark page and toward black on a light one, so they lead without competing with body text.
 
 ## The Markdown subset

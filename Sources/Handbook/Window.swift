@@ -337,22 +337,22 @@ private struct HandbookBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            barButton("sidebar.leading", ui.contents, enabled: true) {
+            barButton(configuration.icons.sidebar, ui.contents, enabled: true) {
                 withAnimation(.easeOut(duration: 0.18)) { browser.showsSidebar.toggle() }
             }
             .glassCapsule()
 
             HStack(spacing: 0) {
-                barButton("chevron.backward", ui.back, enabled: browser.canGoBack) {
+                barButton(configuration.icons.back, ui.back, enabled: browser.canGoBack) {
                     browser.goBack()
                 }
-                barButton("chevron.forward", ui.forward, enabled: browser.canGoForward) {
+                barButton(configuration.icons.forward, ui.forward, enabled: browser.canGoForward) {
                     browser.goForward()
                 }
             }
             .glassCapsule()
 
-            barButton("house", ui.contents, enabled: true) { browser.loadHome() }
+            barButton(configuration.icons.home, ui.contents, enabled: true) { browser.loadHome() }
                 .glassCapsule()
 
             Spacer(minLength: 12)
@@ -386,8 +386,7 @@ private struct HandbookBar: View {
 
     private var searchField: some View {
         HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 13, weight: .medium))
+            HandbookBar.glyph(configuration.icons.search, size: 13)
                 .foregroundStyle(.secondary)
             TextField(ui.searchPlaceholder, text: Binding(
                 get: { browser.query },
@@ -402,8 +401,7 @@ private struct HandbookBar: View {
                     browser.query = ""
                     browser.loadHome()
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 13))
+                    HandbookBar.glyph(configuration.icons.clear, size: 13)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -451,11 +449,21 @@ private struct HandbookBar: View {
             unavailableMessage: "The help content is missing from this copy of Chromagic.")
     }
 
+    /// Asset first, SF Symbol second, so a host can pass either kind of name.
+    @ViewBuilder
+    static func glyph(_ name: String, size: CGFloat = 14) -> some View {
+        if NSImage(named: name) != nil {
+            Image(name).renderingMode(.template).resizable().scaledToFit()
+                .frame(width: size + 1, height: size + 1)
+        } else {
+            Image(systemName: name).font(.system(size: size, weight: .medium))
+        }
+    }
+
     private func barButton(_ symbol: String, _ label: String,
                            enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 14, weight: .medium))
+            Self.glyph(symbol)
                 .frame(width: 36, height: 32)
                 .contentShape(.rect)
         }
