@@ -128,10 +128,10 @@ HandbookWindow(configuration: HandbookConfiguration(
 Toolbar glyphs are configurable the same way:
 
 ```swift
-HandbookConfiguration(icons: HandbookIcons(sidebar: "IconSidebar", home: "IconHome"))
+HandbookConfiguration(icons: HandbookIcons(sidebar: "IconSidebar", home: "IconHome", scale: 1.15))
 ```
 
-Each defaults to an SF Symbol name, so the package ships no artwork and carries no icon licence. Pass a name from your own asset catalog and it is used instead — an asset is resolved first, with the symbol as the fallback.
+Each defaults to an SF Symbol name, so the package ships no artwork and carries no icon licence. Pass a name from your own asset catalog and it is used instead — an asset is resolved first, with the symbol as the fallback. `scale` multiplies every toolbar glyph, since a stroked 24pt set reads smaller than an SF Symbol at the same point size.
 
 Left alone, every colour follows the accent the reader chose in System Settings — headings lightened toward white on a dark page and toward black on a light one, so they lead without competing with body text.
 

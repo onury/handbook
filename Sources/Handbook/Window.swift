@@ -386,7 +386,7 @@ private struct HandbookBar: View {
 
     private var searchField: some View {
         HStack(spacing: 6) {
-            HandbookBar.glyph(configuration.icons.search, size: 13)
+            HandbookBar.glyph(configuration.icons.search, size: 13, scale: configuration.icons.scale)
                 .foregroundStyle(.secondary)
             TextField(ui.searchPlaceholder, text: Binding(
                 get: { browser.query },
@@ -401,7 +401,7 @@ private struct HandbookBar: View {
                     browser.query = ""
                     browser.loadHome()
                 } label: {
-                    HandbookBar.glyph(configuration.icons.clear, size: 13)
+                    HandbookBar.glyph(configuration.icons.clear, size: 13, scale: configuration.icons.scale)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -451,19 +451,22 @@ private struct HandbookBar: View {
 
     /// Asset first, SF Symbol second, so a host can pass either kind of name.
     @ViewBuilder
-    static func glyph(_ name: String, size: CGFloat = 14) -> some View {
+    static func glyph(_ name: String, size: CGFloat = 14, scale: CGFloat = 1) -> some View {
+        let side = size * scale
         if NSImage(named: name) != nil {
+            // Asset glyphs are stroked artwork on a 24pt grid and read a shade smaller than a
+            // symbol at the same size, so they get a point back before the host's scale.
             Image(name).renderingMode(.template).resizable().scaledToFit()
-                .frame(width: size + 1, height: size + 1)
+                .frame(width: side + 1, height: side + 1)
         } else {
-            Image(systemName: name).font(.system(size: size, weight: .medium))
+            Image(systemName: name).font(.system(size: side, weight: .medium))
         }
     }
 
     private func barButton(_ symbol: String, _ label: String,
                            enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Self.glyph(symbol)
+            Self.glyph(symbol, scale: configuration.icons.scale)
                 .frame(width: 36, height: 32)
                 .contentShape(.rect)
         }

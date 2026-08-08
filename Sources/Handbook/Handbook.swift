@@ -69,19 +69,25 @@ public struct HandbookIcons: Sendable {
     public var home: String
     public var search: String
     public var clear: String
+    /// Multiplies every toolbar glyph's size. Icon sets differ in optical weight — a stroked
+    /// 24pt set reads smaller than an SF Symbol at the same point size — so a host that swaps
+    /// the artwork usually wants to nudge the scale with it.
+    public var scale: CGFloat
 
     public init(sidebar: String = "sidebar.leading",
                 back: String = "chevron.backward",
                 forward: String = "chevron.forward",
                 home: String = "house",
                 search: String = "magnifyingglass",
-                clear: String = "xmark.circle.fill") {
+                clear: String = "xmark.circle.fill",
+                scale: CGFloat = 1) {
         self.sidebar = sidebar
         self.back = back
         self.forward = forward
         self.home = home
         self.search = search
         self.clear = clear
+        self.scale = scale
     }
 }
 

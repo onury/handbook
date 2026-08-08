@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- `HandbookIcons.scale` multiplies the toolbar glyphs, for icon sets whose optical weight differs from SF Symbols.
+
 ## 1.1.0
 
 - `HandbookIcons` makes the toolbar's glyphs configurable. Each defaults to an SF Symbol, so the package still ships no artwork; pass an asset-catalog name to use your own set.
