@@ -11,4 +11,4 @@ _backup/
 
 # The latest test reports (coverage, mutation)
 Tests/coverage/
-Tests/mutation/
+Tests/mutation/*_results.json
