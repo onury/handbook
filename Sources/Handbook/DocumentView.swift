@@ -126,14 +126,8 @@ public struct HandbookDocumentView: View {
             }
 
         case .table(let head, let rows):
-            VStack(alignment: .leading, spacing: 0) {
-                tableRow(head, weight: .semibold)
-                Divider()
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    tableRow(row, weight: .regular)
-                }
-            }
-            .padding(.vertical, 4)
+            table(head: head, rows: rows)
+                .padding(.vertical, 4)
 
         case .topicLinks(let entries):
             VStack(alignment: .leading, spacing: 13) {
@@ -215,17 +209,37 @@ public struct HandbookDocumentView: View {
         }
     }
 
-    private func tableRow(_ cells: [String], weight: Font.Weight) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
-                Text(HandbookMarkdown.inline(cell))
-                    .font(.system(size: 13.5, weight: weight))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    // The shortcut column is narrow and fixed; the description takes the rest.
-                    .frame(width: index == 0 && cells.count == 2 ? 92 : nil, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
+    /// A table drawn as one: a rounded frame, the header on a faint fill, a hairline between
+    /// rows. Every column but the last is as wide as its widest cell and never wraps — a help
+    /// table's first columns hold keys and command names, which read wrong broken — and the
+    /// last takes the rest of the width and wraps.
+    private func table(head: [String], rows: [[String]]) -> some View {
+        let columns = max(head.count, rows.map(\.count).max() ?? 0)
+        let rule = Color.primary.opacity(0.12)
+        return Grid(alignment: .topLeading, horizontalSpacing: 0, verticalSpacing: 0) {
+            tableRow(head, columns: columns, weight: .semibold)
+                .background(Color.primary.opacity(0.05))
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                Rectangle().fill(rule).frame(height: 1)
+                tableRow(row, columns: columns, weight: .regular)
             }
         }
-        .padding(.vertical, 5)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(rule, lineWidth: 1))
+    }
+
+    private func tableRow(_ cells: [String], columns: Int, weight: Font.Weight) -> some View {
+        GridRow {
+            ForEach(0..<columns, id: \.self) { index in
+                let last = index == columns - 1
+                Text(HandbookMarkdown.inline(index < cells.count ? cells[index] : ""))
+                    .font(.system(size: 13.5, weight: weight))
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: !last, vertical: true)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .frame(maxWidth: last ? .infinity : nil, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
     }
 }

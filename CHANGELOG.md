@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+- Tables are drawn as tables: a rounded frame, a filled header and a rule between rows. Every column but the last is as wide as its widest cell and never wraps; the last takes the remaining width.
+
 ## 1.2.0
 
 - `HandbookIcons.scale` multiplies the toolbar glyphs, for icon sets whose optical weight differs from SF Symbols.
