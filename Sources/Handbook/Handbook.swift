@@ -19,6 +19,9 @@ public struct HandbookConfiguration: Sendable {
     /// The toolbar's glyphs.
     public var icons: HandbookIcons
     public var theme: HandbookTheme
+    /// Whether a long topic title wraps to a second line in the contents
+    /// sidebar (the default) or is cut short on one line.
+    public var sidebarWrapsTitles: Bool
 
     public init(bundle: Bundle = .main,
                 topicsDirectory: String = "topics",
@@ -26,7 +29,8 @@ public struct HandbookConfiguration: Sendable {
                 fallbackLanguage: String = "en",
                 languagePicker: HandbookLanguagePicker = .automatic,
                 icons: HandbookIcons = HandbookIcons(),
-                theme: HandbookTheme = HandbookTheme()) {
+                theme: HandbookTheme = HandbookTheme(),
+                sidebarWrapsTitles: Bool = true) {
         self.bundle = bundle
         self.topicsDirectory = topicsDirectory
         self.chromeDirectory = chromeDirectory
@@ -34,6 +38,7 @@ public struct HandbookConfiguration: Sendable {
         self.languagePicker = languagePicker
         self.icons = icons
         self.theme = theme
+        self.sidebarWrapsTitles = sidebarWrapsTitles
     }
 }
 
@@ -93,10 +98,14 @@ public struct HandbookIcons: Sendable {
 
 /// The colours the help window uses.
 ///
-/// Every one defaults to `nil`, meaning "derive it from the system accent" — so a host app that
-/// sets nothing follows whatever accent the reader chose in System Settings. Set any of them to
-/// pin that role to a brand colour instead.
+/// Every one defaults to `nil`, meaning "derive it from the accent" — the host's `accent` when it
+/// sets one, the reader's system accent otherwise. Set `accent` to give the whole window one brand
+/// colour, its tones and shades derived from it; set any role to pin that role alone.
 public struct HandbookTheme: Sendable {
+    /// The one colour every other role derives from: headings (a lighter tone of it on a dark
+    /// page, a deeper shade on a light one), links, the selection and its fill. `nil` follows the
+    /// system accent.
+    public var accent: Color?
     /// Titles and section headings. Default: the accent, lightened, so headings lead the page
     /// without competing with the body text.
     public var heading: Color?
@@ -111,12 +120,14 @@ public struct HandbookTheme: Sendable {
     /// Captions, summaries, note text. Default: the system's secondary label colour.
     public var secondary: Color?
 
-    public init(heading: Color? = nil,
+    public init(accent: Color? = nil,
+                heading: Color? = nil,
                 link: Color? = nil,
                 selection: Color? = nil,
                 selectionBackground: Color? = nil,
                 body: Color? = nil,
                 secondary: Color? = nil) {
+        self.accent = accent
         self.heading = heading
         self.link = link
         self.selection = selection
@@ -131,18 +142,27 @@ public struct HandbookTheme: Sendable {
 
     /// The accent, moved toward white on a dark page and toward black on a light one: the same
     /// hue either way, still recognisably the accent, never a wash.
-    static func derivedHeading(_ scheme: ColorScheme) -> Color {
-        let accent = NSColor.controlAccentColor.usingColorSpace(.deviceRGB) ?? .systemBlue
+    static func derivedHeading(_ scheme: ColorScheme, accent: Color? = nil) -> Color {
+        let base = accent.map { NSColor($0) } ?? NSColor.controlAccentColor
+        let color = base.usingColorSpace(.deviceRGB) ?? .systemBlue
         let target: NSColor = scheme == .dark ? .white : .black
         let fraction: CGFloat = scheme == .dark ? 0.42 : 0.18
-        return Color(nsColor: accent.blended(withFraction: fraction, of: target) ?? accent)
+        return Color(nsColor: color.blended(withFraction: fraction, of: target) ?? color)
     }
 
-    func heading(_ scheme: ColorScheme) -> Color { heading ?? Self.derivedHeading(scheme) }
-    func link(_ scheme: ColorScheme) -> Color { link ?? .accentColor }
-    func selection(_ scheme: ColorScheme) -> Color { selection ?? .accentColor }
+    /// The accent as a role reads it: on a light page a bright accent is taken a shade deeper,
+    /// so text in it keeps its contrast.
+    func accentColor(_ scheme: ColorScheme) -> Color {
+        guard let accent else { return .accentColor }
+        guard scheme == .light, let color = NSColor(accent).usingColorSpace(.deviceRGB) else { return accent }
+        return Color(nsColor: color.blended(withFraction: 0.35, of: .black) ?? color)
+    }
+
+    func heading(_ scheme: ColorScheme) -> Color { heading ?? Self.derivedHeading(scheme, accent: accent) }
+    func link(_ scheme: ColorScheme) -> Color { link ?? accentColor(scheme) }
+    func selection(_ scheme: ColorScheme) -> Color { selection ?? accentColor(scheme) }
     func selectionBackground(_ scheme: ColorScheme) -> Color {
-        selectionBackground ?? (selection ?? .accentColor).opacity(0.14)
+        selectionBackground ?? (selection ?? accentColor(scheme)).opacity(0.14)
     }
     var bodyColor: Color { body ?? .primary }
     var secondaryColor: Color { secondary ?? .secondary }

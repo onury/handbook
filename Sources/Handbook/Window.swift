@@ -255,7 +255,9 @@ public struct HandbookWindow: View {
         } else if let document = browser.document {
             HStack(spacing: 0) {
                 if browser.showsSidebar {
-                    HandbookSidebar(browser: browser, theme: configuration.theme, topInset: Self.barHeight)
+                    HandbookSidebar(
+                        browser: browser, theme: configuration.theme, topInset: Self.barHeight,
+                        wrapsTitles: configuration.sidebarWrapsTitles)
                     Divider()
                 }
                 HandbookDocumentView(document: document,
@@ -278,6 +280,10 @@ private struct HandbookSidebar: View {
     let browser: HandbookBrowser
     let theme: HandbookTheme
     let topInset: CGFloat
+    /// Whether a long title wraps to a second line or is cut short on one.
+    let wrapsTitles: Bool
+    /// The one selection capsule, which slides from row to row.
+    @Namespace private var selectionSpace
 
     var body: some View {
         ScrollView {
@@ -292,6 +298,7 @@ private struct HandbookSidebar: View {
             .padding(.horizontal, 8)
             .padding(.bottom, 12)
             .padding(.top, topInset + 8)
+            .animation(.spring(response: 0.32, dampingFraction: 0.86), value: browser.currentTopic)
         }
         .frame(width: 216)
         // A shade darker than the page, so the list reads as a separate surface rather than
@@ -313,15 +320,19 @@ private struct HandbookSidebar: View {
             Text(title)
                 .font(.system(size: 13, weight: selected ? .semibold : .regular))
                 .foregroundStyle(selected ? theme.selection(colorScheme) : theme.bodyColor)
-                .lineLimit(2)
+                .lineLimit(wrapsTitles ? 2 : 1)
+                .truncationMode(.tail)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 9)
+                .padding(.horizontal, 11)
                 .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(selected ? theme.selectionBackground(colorScheme) : .clear)
-                )
+                .background {
+                    if selected {
+                        Capsule()
+                            .fill(theme.selectionBackground(colorScheme))
+                            .matchedGeometryEffect(id: "selection", in: selectionSpace)
+                    }
+                }
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)

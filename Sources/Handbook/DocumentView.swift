@@ -214,21 +214,42 @@ public struct HandbookDocumentView: View {
     /// table's first columns hold keys and command names, which read wrong broken — and the
     /// last takes the rest of the width and wraps.
     private func table(head: [String], rows: [[String]]) -> some View {
+        HandbookTable(head: head, rows: rows)
+    }
+}
+
+/// A table: a rounded frame, a filled header band and a rule between rows.
+/// Every column but the last is as wide as its widest cell and never wraps — a
+/// table's first columns hold keys and command names, which read wrong broken
+/// — and the last takes the rest of the width and wraps.
+///
+/// The header's fill is one band behind the whole row, drawn at the header's
+/// measured height: a fill on the header ROW lands on each cell, and a cell is
+/// only as wide as its text, so the gaps between columns were left bare.
+private struct HandbookTable: View {
+    let head: [String]
+    let rows: [[String]]
+    @State private var headerHeight: CGFloat = 0
+
+    var body: some View {
         let columns = max(head.count, rows.map(\.count).max() ?? 0)
         let rule = Color.primary.opacity(0.12)
-        return Grid(alignment: .topLeading, horizontalSpacing: 0, verticalSpacing: 0) {
-            tableRow(head, columns: columns, weight: .semibold)
-                .background(Color.primary.opacity(0.05))
-            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+        Grid(alignment: .topLeading, horizontalSpacing: 0, verticalSpacing: 0) {
+            row(head, columns: columns, weight: .semibold)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, cells in
                 Rectangle().fill(rule).frame(height: 1)
-                tableRow(row, columns: columns, weight: .regular)
+                row(cells, columns: columns, weight: .regular)
             }
+        }
+        .background(alignment: .top) {
+            Color.primary.opacity(0.05).frame(height: headerHeight)
         }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(rule, lineWidth: 1))
     }
 
-    private func tableRow(_ cells: [String], columns: Int, weight: Font.Weight) -> some View {
+    private func row(_ cells: [String], columns: Int, weight: Font.Weight) -> some View {
         GridRow {
             ForEach(0..<columns, id: \.self) { index in
                 let last = index == columns - 1

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0
+
+- An `accent` in the theme that every role derives its tones from; the sidebar's selection is a capsule that slides between rows; `sidebarWrapsTitles` keeps long titles to one line; a table's header fill spans the whole row; and the search field keeps one structure across focus, which froze and then crashed the window in 1.4.1.
+
 ## 1.4.1
 
 - The search field is flat while it waits, and glass with a quiet rim once it has the cursor.

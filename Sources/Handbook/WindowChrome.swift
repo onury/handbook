@@ -110,17 +110,20 @@ private struct SearchCapsuleStyle: ViewModifier {
     let focused: Bool
     @Environment(\.colorScheme) private var colorScheme
 
+    /// One structure whatever the focus: only values change. A style that
+    /// swapped branches on focus rebuilt the field it wraps, which dropped the
+    /// focus, which swapped the branch back — a loop that froze the window and
+    /// brought it down in layout.
     func body(content: Content) -> some View {
-        if focused {
+        let ink: Color = colorScheme == .dark ? .black : .white
+        if #available(macOS 26.0, *) {
             content
-                .glassCapsule()
-                .overlay {
-                    Capsule().strokeBorder(
-                        (colorScheme == .dark ? Color.black : Color.white).opacity(0.45), lineWidth: 1.5)
-                }
+                .background(Capsule().fill(.primary.opacity(focused ? 0 : (colorScheme == .dark ? 0.06 : 0.05))))
+                .glassEffect(focused ? .clear : .identity, in: Capsule())
+                .overlay(Capsule().strokeBorder(ink.opacity(focused ? 0.45 : 0), lineWidth: 1.5))
         } else {
             content
-                .background(Capsule().fill(.primary.opacity(colorScheme == .dark ? 0.06 : 0.05)))
+                .background(Capsule().fill(.primary.opacity(focused ? 0.1 : 0.06)))
         }
     }
 }
