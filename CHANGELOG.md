@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.4
+
+- The unavailable state names no particular app ("this copy of the app"), and the toolbar's title falls back to "Help". Tests now pin the theme's roles, the configuration's defaults, and the browser's history, languages and search.
+
 ## 1.6.3
 
 - The search field's focus ring is 1.5 points.

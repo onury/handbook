@@ -249,7 +249,7 @@ public struct HandbookWindow: View {
             ContentUnavailableView(
                 "Help isn’t available",
                 systemImage: "questionmark.circle",
-                description: Text("The help content is missing from this copy of Chromagic.")
+                description: Text("The help content is missing from this copy of the app.")
             )   // No book resolved, so there is no localized copy to show this in.
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let document = browser.document {
@@ -378,7 +378,7 @@ private struct HandbookBar: View {
             barButton(configuration.icons.home, ui.contents, enabled: true) { browser.loadHome() }
 
             Spacer(minLength: 12)
-            Text(browser.book?.chrome.bookTitle ?? "Chromagic Help")
+            Text(browser.book?.chrome.bookTitle ?? "Help")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
@@ -468,7 +468,7 @@ private struct HandbookBar: View {
             searchPlaceholder: "Search", clear: "Clear", languageLabel: "Help language",
             resultsFor: "Results for “%@”", noResults: "Nothing matched.",
             unavailableTitle: "Help isn’t available",
-            unavailableMessage: "The help content is missing from this copy of Chromagic.")
+            unavailableMessage: "The help content is missing from this copy of the app.")
     }
 
     /// Asset first, SF Symbol second, so a host can pass either kind of name.
