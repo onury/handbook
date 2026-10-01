@@ -102,10 +102,13 @@ public struct HandbookIcons: Sendable {
 /// sets one, the reader's system accent otherwise. Set `accent` to give the whole window one brand
 /// colour, its tones and shades derived from it; set any role to pin that role alone.
 public struct HandbookTheme: Sendable {
-    /// The one colour every other role derives from: headings (a lighter tone of it on a dark
-    /// page, a deeper shade on a light one), links, the selection and its fill. `nil` follows the
-    /// system accent.
+    /// The primary accent, which every role but the secondary ones derives from: the page's
+    /// title, links, the sidebar's selection and its fill, and code. `nil` follows the system
+    /// accent.
     public var accent: Color?
+    /// The secondary accent: section headings and callouts (a note's rule). `nil` uses the
+    /// primary accent for those too.
+    public var secondaryAccent: Color?
     /// Titles and section headings. Default: the accent, lightened, so headings lead the page
     /// without competing with the body text.
     public var heading: Color?
@@ -121,6 +124,7 @@ public struct HandbookTheme: Sendable {
     public var secondary: Color?
 
     public init(accent: Color? = nil,
+                secondaryAccent: Color? = nil,
                 heading: Color? = nil,
                 link: Color? = nil,
                 selection: Color? = nil,
@@ -128,6 +132,7 @@ public struct HandbookTheme: Sendable {
                 body: Color? = nil,
                 secondary: Color? = nil) {
         self.accent = accent
+        self.secondaryAccent = secondaryAccent
         self.heading = heading
         self.link = link
         self.selection = selection
@@ -159,6 +164,30 @@ public struct HandbookTheme: Sendable {
     }
 
     func heading(_ scheme: ColorScheme) -> Color { heading ?? Self.derivedHeading(scheme, accent: accent) }
+    /// Section headings: the secondary accent's tone, the primary's when there is none.
+    func subheading(_ scheme: ColorScheme) -> Color {
+        heading ?? Self.derivedHeading(scheme, accent: secondaryAccent ?? accent)
+    }
+    /// A callout's rule.
+    func callout(_ scheme: ColorScheme) -> Color {
+        guard let secondaryAccent else { return link(scheme) }
+        return Self.toned(secondaryAccent, scheme)
+    }
+    /// Code: the primary accent a shade deeper, on a pale wash of it.
+    func code(_ scheme: ColorScheme) -> Color {
+        let base = accent.map { NSColor($0) } ?? NSColor.controlAccentColor
+        let color = base.usingColorSpace(.deviceRGB) ?? .systemGreen
+        let fraction: CGFloat = scheme == .dark ? 0.22 : 0.45
+        return Color(nsColor: color.blended(withFraction: fraction, of: .black) ?? color)
+    }
+    func codeBackground(_ scheme: ColorScheme) -> Color {
+        (accent ?? .accentColor).opacity(scheme == .dark ? 0.08 : 0.10)
+    }
+    /// A colour as a role reads it on this page: a shade deeper on a light one.
+    static func toned(_ color: Color, _ scheme: ColorScheme) -> Color {
+        guard scheme == .light, let c = NSColor(color).usingColorSpace(.deviceRGB) else { return color }
+        return Color(nsColor: c.blended(withFraction: 0.35, of: .black) ?? c)
+    }
     func link(_ scheme: ColorScheme) -> Color { link ?? accentColor(scheme) }
     func selection(_ scheme: ColorScheme) -> Color { selection ?? accentColor(scheme) }
     func selectionBackground(_ scheme: ColorScheme) -> Color {

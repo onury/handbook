@@ -42,7 +42,7 @@ public struct HandbookDocumentView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(HandbookMarkdown.inline(document.title))
+                Text(styled(document.title))
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(theme.heading(colorScheme))
                     .padding(.bottom, 2)
@@ -51,7 +51,9 @@ public struct HandbookDocumentView: View {
                     view(for: block)
                 }
             }
-            .textSelection(.enabled)
+            // No page-wide text selection: a selectable Text shows the I-beam over its links
+            // too, and a link should look clickable. Code blocks stay selectable, since code
+            // is what a reader copies.
             .frame(maxWidth: 680, alignment: .leading)
             .padding(.horizontal, 34)
             .padding(.bottom, 30)
@@ -73,13 +75,13 @@ public struct HandbookDocumentView: View {
     private func view(for block: HandbookBlock) -> some View {
         switch block {
         case .heading(let level, let text):
-            Text(HandbookMarkdown.inline(text))
+            Text(styled(text))
                 .font(.system(size: level == 2 ? 19 : 16, weight: .semibold))
-                .foregroundStyle(theme.heading(colorScheme))
+                .foregroundStyle(theme.subheading(colorScheme))
                 .padding(.top, level == 2 ? 14 : 8)
 
         case .paragraph(let text):
-            Text(HandbookMarkdown.inline(text))
+            Text(styled(text))
                 .font(.system(size: 14))
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
@@ -89,9 +91,9 @@ public struct HandbookDocumentView: View {
                 // The stylesheet's left rule, which is what makes a note read as an aside
                 // rather than another paragraph.
                 Rectangle()
-                    .fill(theme.link(colorScheme).opacity(0.55))
+                    .fill(theme.callout(colorScheme).opacity(0.7))
                     .frame(width: 3)
-                Text(HandbookMarkdown.inline(text))
+                Text(styled(text))
                     .font(.system(size: 14))
                     .lineSpacing(4)
                     .foregroundStyle(theme.secondaryColor)
@@ -102,24 +104,24 @@ public struct HandbookDocumentView: View {
         case .bullets(let items):
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    marker("•", HandbookMarkdown.inline(item))
+                    marker("•", styled(item))
                 }
             }
 
         case .numbers(let items):
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    marker("\(index + 1).", HandbookMarkdown.inline(item))
+                    marker("\(index + 1).", styled(item))
                 }
             }
 
         case .definitions(let entries):
-            VStack(alignment: .leading, spacing: 11) {
+            VStack(alignment: .leading, spacing: 16.5) {
                 ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(HandbookMarkdown.inline(entry.term))
+                        Text(styled(entry.term))
                             .font(.system(size: 14, weight: .semibold))
-                        Text(HandbookMarkdown.inline(entry.description))
+                        Text(styled(entry.description))
                             .font(.system(size: 14))
                             .lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
@@ -140,7 +142,7 @@ public struct HandbookDocumentView: View {
                                 .font(.system(size: 14.5, weight: .semibold))
                                 .foregroundStyle(theme.link(colorScheme))
                             if !entry.summary.isEmpty {
-                                Text(HandbookMarkdown.inline(entry.summary))
+                                Text(styled(entry.summary))
                                     .font(.system(size: 14))
                                     .foregroundStyle(theme.bodyColor)
                                     .lineSpacing(4)
@@ -171,7 +173,7 @@ public struct HandbookDocumentView: View {
                         )
                         .accessibilityLabel(Text(caption))
                     if !caption.isEmpty {
-                        Text(HandbookMarkdown.inline(caption))
+                        Text(styled(caption))
                             .font(.system(size: 12.5))
                             .foregroundStyle(theme.secondaryColor)
                     }
@@ -182,10 +184,22 @@ public struct HandbookDocumentView: View {
         case .code(let text):
             Text(text)
                 .font(.system(size: 12.5, design: .monospaced))
+                .foregroundStyle(theme.code(colorScheme))
+                .textSelection(.enabled)
                 .padding(11)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 7))
+                .background(theme.codeBackground(colorScheme), in: RoundedRectangle(cornerRadius: 7))
         }
+    }
+
+    /// Inline Markdown with its code runs in the theme's code colours.
+    private func styled(_ text: String) -> AttributedString {
+        var attributed = HandbookMarkdown.inline(text)
+        for run in attributed.runs where run.inlinePresentationIntent?.contains(.code) == true {
+            attributed[run.range].foregroundColor = theme.code(colorScheme)
+            attributed[run.range].backgroundColor = theme.codeBackground(colorScheme)
+        }
+        return attributed
     }
 
     /// Looks in this locale's folder first, then the base language: a screenshot only needs
@@ -200,8 +214,11 @@ public struct HandbookDocumentView: View {
 
     private func marker(_ symbol: String, _ text: AttributedString) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 9) {
+            // A bullet drawn twice the text's size reads as a mark rather than a speck; a
+            // number keeps the text's size.
             Text(symbol)
-                .font(.system(size: 14))
+                .font(.system(size: symbol == "•" ? 28 : 14))
+                .baselineOffset(symbol == "•" ? -3 : 0)
                 .foregroundStyle(theme.secondaryColor)
                 .frame(width: 16, alignment: .trailing)
             Text(text)

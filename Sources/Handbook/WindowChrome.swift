@@ -123,7 +123,9 @@ private struct SearchCapsuleStyle: ViewModifier {
                 .background(Capsule().fill(.primary.opacity(focused ? 0 : (colorScheme == .dark ? 0.06 : 0.05))))
                 .background(Capsule().fill(.black.opacity(focused ? (colorScheme == .dark ? 0.32 : 0.08) : 0)))
                 .glassEffect(focused ? .clear : .identity, in: Capsule())
-                .overlay(Capsule().strokeBorder(ink.opacity(focused ? 0.45 : 0), lineWidth: 1.5))
+                // Centred ON the edge, where the glass's light is: an inner border sat just
+                // inside it and the bright line still showed outside.
+                .overlay(Capsule().stroke(ink.opacity(focused ? 0.55 : 0), lineWidth: 2.5))
         } else {
             content
                 .background(Capsule().fill(.primary.opacity(focused ? 0.1 : 0.06)))
