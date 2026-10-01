@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+- The toolbar's buttons are flat: the sidebar toggle, Back, Forward and Home stand on a glass circle only while the pointer is over them, the way a macOS 27 toolbar reads. The search field and the language picker keep their capsules.
+
 ## 1.3.0
 
 - Tables are drawn as tables: a rounded frame, a filled header and a rule between rows. Every column but the last is as wide as its widest cell and never wraps; the last takes the remaining width.

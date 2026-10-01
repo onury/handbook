@@ -126,3 +126,38 @@ private struct GlassCapsuleStyle: ViewModifier {
         }
     }
 }
+
+/// A toolbar button that is flat at rest and stands on a glass circle only
+/// while the pointer is over it — the way the toolbar buttons of a macOS 27
+/// app read beside a window's own controls, where a glass capsule around every
+/// button at rest is a row of pills competing with the page.
+///
+/// The glass is mounted only while it shows: a hidden glass pane still costs
+/// its compositing on every frame.
+struct GhostButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        GhostButton(configuration: configuration)
+    }
+
+    private struct GhostButton: View {
+        let configuration: ButtonStyleConfiguration
+        @State private var hovering = false
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .background {
+                    if hovering && isEnabled {
+                        if #available(macOS 26.0, *) {
+                            Circle().fill(.clear).glassEffect(.clear, in: Circle())
+                        } else {
+                            Circle().fill(.primary.opacity(0.08))
+                        }
+                    }
+                }
+                .opacity(configuration.isPressed ? 0.7 : 1)
+                .onHover { hovering = $0 }
+                .animation(.easeOut(duration: 0.12), value: hovering)
+        }
+    }
+}

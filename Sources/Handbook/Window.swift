@@ -340,9 +340,8 @@ private struct HandbookBar: View {
             barButton(configuration.icons.sidebar, ui.contents, enabled: true) {
                 withAnimation(.easeOut(duration: 0.18)) { browser.showsSidebar.toggle() }
             }
-            .glassCapsule()
 
-            HStack(spacing: 0) {
+            HStack(spacing: 2) {
                 barButton(configuration.icons.back, ui.back, enabled: browser.canGoBack) {
                     browser.goBack()
                 }
@@ -350,10 +349,8 @@ private struct HandbookBar: View {
                     browser.goForward()
                 }
             }
-            .glassCapsule()
 
             barButton(configuration.icons.home, ui.contents, enabled: true) { browser.loadHome() }
-                .glassCapsule()
 
             Spacer(minLength: 12)
             Text(browser.book?.chrome.bookTitle ?? "Chromagic Help")
@@ -467,10 +464,10 @@ private struct HandbookBar: View {
                            enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Self.glyph(symbol, scale: configuration.icons.scale)
-                .frame(width: 36, height: 32)
-                .contentShape(.rect)
+                .frame(width: 32, height: 32)
+                .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GhostButtonStyle())
         .disabled(!enabled)
         .foregroundStyle(enabled ? .primary : .tertiary)
         .accessibilityLabel(Text(label))
