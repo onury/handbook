@@ -407,7 +407,7 @@ private struct HandbookBar: View {
         }
         .padding(.horizontal, 11)
         .frame(width: 280, height: 32)
-        .glassCapsule()
+        .searchCapsule(focused: searching)
     }
 
     /// Reads the help in a different language from the app's, without changing the app's own

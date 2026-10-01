@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+
+- The search field is flat while it waits, and glass with a quiet rim once it has the cursor.
+
 ## 1.4.0
 
 - The toolbar's buttons are flat: the sidebar toggle, Back, Forward and Home stand on a glass circle only while the pointer is over them, the way a macOS 27 toolbar reads. The search field and the language picker keep their capsules.

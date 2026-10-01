@@ -98,6 +98,33 @@ extension View {
     func glassCapsule() -> some View { modifier(GlassCapsuleStyle()) }
 }
 
+extension View {
+    /// The search field's capsule: flat while the field waits — a quiet fill
+    /// with no glass, so it does not stand up from the bar like a button — and
+    /// glass once it has the cursor, its bright rim toned down by a hairline of
+    /// the bar's own ink over it.
+    func searchCapsule(focused: Bool) -> some View { modifier(SearchCapsuleStyle(focused: focused)) }
+}
+
+private struct SearchCapsuleStyle: ViewModifier {
+    let focused: Bool
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        if focused {
+            content
+                .glassCapsule()
+                .overlay {
+                    Capsule().strokeBorder(
+                        (colorScheme == .dark ? Color.black : Color.white).opacity(0.45), lineWidth: 1.5)
+                }
+        } else {
+            content
+                .background(Capsule().fill(.primary.opacity(colorScheme == .dark ? 0.06 : 0.05)))
+        }
+    }
+}
+
 private struct GlassCapsuleStyle: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
