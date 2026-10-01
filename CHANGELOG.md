@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.3
+
+- The search field's focus ring is 1.5 points.
+
 ## 1.6.2
 
 - The search field is a quiet flat fill, no glass, and wears the Mac's focus ring in the theme's accent while it has the cursor.

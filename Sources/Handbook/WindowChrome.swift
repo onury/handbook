@@ -120,8 +120,8 @@ private struct SearchCapsuleStyle: ViewModifier {
             // The focus ring as the system draws one: a soft band just outside the edge.
             .overlay(
                 Capsule()
-                    .stroke(ring.opacity(focused ? 0.6 : 0), lineWidth: 3)
-                    .padding(-1.5)
+                    .stroke(ring.opacity(focused ? 0.6 : 0), lineWidth: 1.5)
+                    .padding(-0.75)
             )
             .animation(.easeOut(duration: 0.15), value: focused)
     }
