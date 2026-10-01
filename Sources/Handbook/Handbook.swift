@@ -163,11 +163,11 @@ public struct HandbookTheme: Sendable {
         return Color(nsColor: color.blended(withFraction: 0.35, of: .black) ?? color)
     }
 
-    func heading(_ scheme: ColorScheme) -> Color { heading ?? Self.derivedHeading(scheme, accent: accent) }
-    /// Section headings: the secondary accent's tone, the primary's when there is none.
-    func subheading(_ scheme: ColorScheme) -> Color {
-        heading ?? Self.derivedHeading(scheme, accent: secondaryAccent ?? accent)
-    }
+    /// The page's title: the host's accent exactly as given — a brand colour is not re-toned —
+    /// and a lighter tone of the system accent only when the host gives none.
+    func heading(_ scheme: ColorScheme) -> Color { heading ?? accent ?? Self.derivedHeading(scheme) }
+    /// Section headings: the secondary accent exactly, the title's colour when there is none.
+    func subheading(_ scheme: ColorScheme) -> Color { secondaryAccent ?? heading(scheme) }
     /// A callout's rule.
     func callout(_ scheme: ColorScheme) -> Color {
         guard let secondaryAccent else { return link(scheme) }

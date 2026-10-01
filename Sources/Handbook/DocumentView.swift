@@ -51,9 +51,9 @@ public struct HandbookDocumentView: View {
                     view(for: block)
                 }
             }
-            // No page-wide text selection: a selectable Text shows the I-beam over its links
-            // too, and a link should look clickable. Code blocks stay selectable, since code
-            // is what a reader copies.
+            // The page is selectable: a reader copies from help. (A selectable Text shows the
+            // text cursor over its links too, and SwiftUI offers no per-link cursor.)
+            .textSelection(.enabled)
             .frame(maxWidth: 680, alignment: .leading)
             .padding(.horizontal, 34)
             .padding(.bottom, 30)

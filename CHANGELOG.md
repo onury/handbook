@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+
+- Headings take the host's accents exactly as given — the title the primary, section headings the secondary — re-toning only the system accent when the host gives none; and the page's text is selectable again.
+
 ## 1.6.0
 
 - A `secondaryAccent` for section headings and callouts beside the primary `accent` (the title, the contents, links, code); code, fenced and inline, in a deeper shade of the accent on a pale wash of it; links show the arrow rather than the text cursor (code blocks stay selectable); half again the space between reference entries; bullets twice the size; and the focused search field's bright rim veiled on the edge itself.
