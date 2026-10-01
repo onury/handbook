@@ -65,6 +65,8 @@ public struct HandbookDocumentView: View {
             onOpen(URL(fileURLWithPath: target).deletingPathExtension().lastPathComponent)
             return .handled
         })
+        // Inline links in running text take the theme's link colour, not the system accent.
+        .tint(theme.link(colorScheme))
     }
 
     @ViewBuilder
@@ -235,8 +237,9 @@ private struct HandbookTable: View {
         let columns = max(head.count, rows.map(\.count).max() ?? 0)
         let rule = Color.primary.opacity(0.12)
         Grid(alignment: .topLeading, horizontalSpacing: 0, verticalSpacing: 0) {
-            row(head, columns: columns, weight: .semibold)
-                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
+            // Measured inside a cell: a modifier on a GridRow makes it an ordinary view, and
+            // the header's cells collapsed into one stacked cell.
+            row(head, columns: columns, weight: .semibold, measuresHeight: true)
             ForEach(Array(rows.enumerated()), id: \.offset) { _, cells in
                 Rectangle().fill(rule).frame(height: 1)
                 row(cells, columns: columns, weight: .regular)
@@ -249,7 +252,7 @@ private struct HandbookTable: View {
         .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(rule, lineWidth: 1))
     }
 
-    private func row(_ cells: [String], columns: Int, weight: Font.Weight) -> some View {
+    private func row(_ cells: [String], columns: Int, weight: Font.Weight, measuresHeight: Bool = false) -> some View {
         GridRow {
             ForEach(0..<columns, id: \.self) { index in
                 let last = index == columns - 1
@@ -260,6 +263,9 @@ private struct HandbookTable: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 7)
                     .frame(maxWidth: last ? .infinity : nil, maxHeight: .infinity, alignment: .topLeading)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+                        if measuresHeight, index == 0 { headerHeight = height }
+                    }
             }
         }
     }

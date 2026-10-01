@@ -118,7 +118,10 @@ private struct SearchCapsuleStyle: ViewModifier {
         let ink: Color = colorScheme == .dark ? .black : .white
         if #available(macOS 26.0, *) {
             content
+                // Resting: a quiet lift of the bar. Focused: a well darker than the resting
+                // fill under the glass, so the field reads as sunk, not raised.
                 .background(Capsule().fill(.primary.opacity(focused ? 0 : (colorScheme == .dark ? 0.06 : 0.05))))
+                .background(Capsule().fill(.black.opacity(focused ? (colorScheme == .dark ? 0.32 : 0.08) : 0)))
                 .glassEffect(focused ? .clear : .identity, in: Capsule())
                 .overlay(Capsule().strokeBorder(ink.opacity(focused ? 0.45 : 0), lineWidth: 1.5))
         } else {

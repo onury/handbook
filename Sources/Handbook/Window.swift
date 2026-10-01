@@ -261,12 +261,19 @@ public struct HandbookWindow: View {
                     Divider()
                 }
                 HandbookDocumentView(document: document,
+                                 theme: configuration.theme,
                                  images: browser.book?.topics.appending(path: "images"),
                                  topInset: Self.barHeight) { topic in
                     if topic == "index" { browser.loadHome() } else { browser.open(topic: topic) }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            // A click anywhere below the bar ends a search field's edit, as a click away from a
+            // field does anywhere on the Mac. Simultaneous, so the row or link under the click
+            // still gets it.
+            .simultaneousGesture(TapGesture().onEnded {
+                NSApp.keyWindow?.makeFirstResponder(nil)
+            })
         } else {
             Color.clear
         }
@@ -282,8 +289,6 @@ private struct HandbookSidebar: View {
     let topInset: CGFloat
     /// Whether a long title wraps to a second line or is cut short on one.
     let wrapsTitles: Bool
-    /// The one selection capsule, which slides from row to row.
-    @Namespace private var selectionSpace
 
     var body: some View {
         ScrollView {
@@ -295,10 +300,24 @@ private struct HandbookSidebar: View {
                     row(title: topic.title, topic: topic.id)
                 }
             }
+            // ONE capsule behind the list, moved to the selected row's frame — a real slide.
+            // A capsule per row, even matched across rows, cross-fades one out and the next
+            // in rather than travelling.
+            .backgroundPreferenceValue(RowFrames.self) { frames in
+                GeometryReader { proxy in
+                    if let anchor = frames[browser.currentTopic ?? ""] {
+                        let frame = proxy[anchor]
+                        Capsule()
+                            .fill(theme.selectionBackground(colorScheme))
+                            .frame(width: frame.width, height: frame.height)
+                            .offset(x: frame.minX, y: frame.minY)
+                    }
+                }
+            }
+            .animation(.spring(response: 0.32, dampingFraction: 0.86), value: browser.currentTopic)
             .padding(.horizontal, 8)
             .padding(.bottom, 12)
             .padding(.top, topInset + 8)
-            .animation(.spring(response: 0.32, dampingFraction: 0.86), value: browser.currentTopic)
         }
         .frame(width: 216)
         // A shade darker than the page, so the list reads as a separate surface rather than
@@ -326,13 +345,7 @@ private struct HandbookSidebar: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 11)
                 .padding(.vertical, 6)
-                .background {
-                    if selected {
-                        Capsule()
-                            .fill(theme.selectionBackground(colorScheme))
-                            .matchedGeometryEffect(id: "selection", in: selectionSpace)
-                    }
-                }
+                .anchorPreference(key: RowFrames.self, value: .bounds) { [topic ?? "": $0] }
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)
@@ -483,5 +496,14 @@ private struct HandbookBar: View {
         .foregroundStyle(enabled ? .primary : .tertiary)
         .accessibilityLabel(Text(label))
         .help(Text(label))
+    }
+}
+
+/// Each contents row's frame, by topic (the home row as ""), for the sidebar's one sliding
+/// selection capsule.
+private struct RowFrames: PreferenceKey {
+    static let defaultValue: [String: Anchor<CGRect>] = [:]
+    static func reduce(value: inout [String: Anchor<CGRect>], nextValue: () -> [String: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
     }
 }

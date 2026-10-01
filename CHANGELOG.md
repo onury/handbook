@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1
+
+- The page takes the theme's accent (headings, links, the quote bar); a table's header keeps its columns again, its fill one band behind the row; the selection is one capsule that slides to the row; a click anywhere below the bar ends a search field's edit; and a focused search field sits darker than a resting one.
+
 ## 1.5.0
 
 - An `accent` in the theme that every role derives its tones from; the sidebar's selection is a capsule that slides between rows; `sidebarWrapsTitles` keeps long titles to one line; a table's header fill spans the whole row; and the search field keeps one structure across focus, which froze and then crashed the window in 1.4.1.
