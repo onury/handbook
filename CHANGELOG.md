@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.2
+
+- The search field is a quiet flat fill, no glass, and wears the Mac's focus ring in the theme's accent while it has the cursor.
+
 ## 1.6.1
 
 - Headings take the host's accents exactly as given — the title the primary, section headings the secondary — re-toning only the system accent when the host gives none; and the page's text is selectable again.

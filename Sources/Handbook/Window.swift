@@ -358,6 +358,7 @@ private struct HandbookBar: View {
     let browser: HandbookBrowser
     let configuration: HandbookConfiguration
     @FocusState private var searching: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -431,7 +432,7 @@ private struct HandbookBar: View {
         }
         .padding(.horizontal, 11)
         .frame(width: 280, height: 32)
-        .searchCapsule(focused: searching)
+        .searchCapsule(focused: searching, ring: configuration.theme.link(colorScheme))
     }
 
     /// Reads the help in a different language from the app's, without changing the app's own

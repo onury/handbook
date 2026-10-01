@@ -99,37 +99,31 @@ extension View {
 }
 
 extension View {
-    /// The search field's capsule: flat while the field waits — a quiet fill
-    /// with no glass, so it does not stand up from the bar like a button — and
-    /// glass once it has the cursor, its bright rim toned down by a hairline of
-    /// the bar's own ink over it.
-    func searchCapsule(focused: Bool) -> some View { modifier(SearchCapsuleStyle(focused: focused)) }
+    /// The search field's capsule: a quiet flat fill, no glass, and the Mac's focus ring in
+    /// the theme's accent while the field has the cursor.
+    func searchCapsule(focused: Bool, ring: Color) -> some View {
+        modifier(SearchCapsuleStyle(focused: focused, ring: ring))
+    }
 }
 
 private struct SearchCapsuleStyle: ViewModifier {
     let focused: Bool
+    let ring: Color
     @Environment(\.colorScheme) private var colorScheme
 
-    /// One structure whatever the focus: only values change. A style that
-    /// swapped branches on focus rebuilt the field it wraps, which dropped the
-    /// focus, which swapped the branch back — a loop that froze the window and
-    /// brought it down in layout.
+    /// One structure whatever the focus: only values change. A style that swapped branches
+    /// on focus rebuilt the field it wraps, which dropped the focus, which swapped the branch
+    /// back — a loop that froze the window and brought it down in layout (1.4.1).
     func body(content: Content) -> some View {
-        let ink: Color = colorScheme == .dark ? .black : .white
-        if #available(macOS 26.0, *) {
-            content
-                // Resting: a quiet lift of the bar. Focused: a well darker than the resting
-                // fill under the glass, so the field reads as sunk, not raised.
-                .background(Capsule().fill(.primary.opacity(focused ? 0 : (colorScheme == .dark ? 0.06 : 0.05))))
-                .background(Capsule().fill(.black.opacity(focused ? (colorScheme == .dark ? 0.32 : 0.08) : 0)))
-                .glassEffect(focused ? .clear : .identity, in: Capsule())
-                // Centred ON the edge, where the glass's light is: an inner border sat just
-                // inside it and the bright line still showed outside.
-                .overlay(Capsule().stroke(ink.opacity(focused ? 0.55 : 0), lineWidth: 2.5))
-        } else {
-            content
-                .background(Capsule().fill(.primary.opacity(focused ? 0.1 : 0.06)))
-        }
+        content
+            .background(Capsule().fill(.primary.opacity(colorScheme == .dark ? 0.07 : 0.05)))
+            // The focus ring as the system draws one: a soft band just outside the edge.
+            .overlay(
+                Capsule()
+                    .stroke(ring.opacity(focused ? 0.6 : 0), lineWidth: 3)
+                    .padding(-1.5)
+            )
+            .animation(.easeOut(duration: 0.15), value: focused)
     }
 }
 
