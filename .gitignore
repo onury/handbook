@@ -6,7 +6,6 @@ DerivedData/
 *.xcworkspace
 
 # Working notes and scratch — never shipped, never public.
-_notes/
 _backup/
 
 # The latest test reports (coverage, mutation)
