@@ -154,4 +154,19 @@ final class BrowserTests: XCTestCase {
         XCTAssertNil(browser.currentTopic)
         XCTAssertEqual(browser.document?.title, "Help")
     }
+
+    /// Home asks both columns to start from the top, every time, including when the home page
+    /// is already the one showing (it used to leave both where they were scrolled).
+    func testHomeAsksForTheTopEveryTime() throws {
+        let browser = try browser()
+        browser.start()
+        XCTAssertEqual(browser.homeRequests, 0)
+        browser.open(topic: "masks")
+        browser.loadHome()
+        XCTAssertEqual(browser.homeRequests, 1)
+        XCTAssertNil(browser.currentTopic)
+        browser.loadHome()
+        XCTAssertEqual(browser.homeRequests, 2)
+        XCTAssertNil(browser.currentTopic)
+    }
 }

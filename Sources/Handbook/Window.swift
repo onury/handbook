@@ -13,6 +13,10 @@ final class HandbookBrowser {
     var showsSidebar = true
     var canGoBack = false
     var canGoForward = false
+    /// Counts the times Home was asked for. The contents list and the page both scroll to
+    /// their top when it moves, so Home always lands at the start of both, even when the
+    /// home page was already showing.
+    private(set) var homeRequests = 0
 
     /// Our own history, and the reason we do not use a web view's: back and forward should
     /// walk the TOPICS the reader visited. Switching language re-renders the same topic, and
@@ -80,6 +84,7 @@ final class HandbookBrowser {
     func loadHome() {
         query = ""
         push(nil)
+        homeRequests += 1
     }
 
     func open(topic id: String) {
@@ -263,7 +268,8 @@ public struct HandbookWindow: View {
                 HandbookDocumentView(document: document,
                                  theme: configuration.theme,
                                  images: browser.book?.topics.appending(path: "images"),
-                                 topInset: Self.barHeight) { topic in
+                                 topInset: Self.barHeight,
+                                 scrollsToTop: browser.homeRequests) { topic in
                     if topic == "index" { browser.loadHome() } else { browser.open(topic: topic) }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -291,11 +297,13 @@ private struct HandbookSidebar: View {
     let wrapsTitles: Bool
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 1) {
                 // Named for what it does, not for the book — "Home" reads as a destination
                 // where the book's own title reads as a heading.
                 row(title: browser.book?.chrome.ui.home ?? "Home", topic: nil)
+                    .id(Self.top)
                 ForEach(browser.topics) { topic in
                     row(title: topic.title, topic: topic.id)
                 }
@@ -319,6 +327,11 @@ private struct HandbookSidebar: View {
             .padding(.bottom, 12)
             .padding(.top, topInset + 8)
         }
+        // Home brings the list back to its first row, as it brings the page to its top.
+        .onChange(of: browser.homeRequests) {
+            withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(Self.top, anchor: .top) }
+        }
+        }
         .frame(width: 216)
         // A shade darker than the page, so the list reads as a separate surface rather than
         // a column of the same document. The tint is its own layer over the material — as an
@@ -330,6 +343,9 @@ private struct HandbookSidebar: View {
             }
         }
     }
+
+    /// The Home row's id, which the list scrolls back to.
+    private static let top = "handbook.sidebar.top"
 
     private func row(title: String, topic: String?) -> some View {
         let selected = browser.currentTopic == topic

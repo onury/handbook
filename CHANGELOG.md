@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.5
+
+- Home scrolls the contents list and the page back to their top, even when the home page is already the one showing.
+
 ## 1.6.4
 
 - The unavailable state names no particular app ("this copy of the app"), and the toolbar's title falls back to "Help". Tests now pin the theme's roles, the configuration's defaults, and the browser's history, languages and search.

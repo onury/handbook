@@ -23,6 +23,8 @@ public struct HandbookDocumentView: View {
     /// Space for the floating toolbar. The page scrolls UNDER the bar — that is what gives
     /// the frosted glass something to frost — so the first line needs clearing manually.
     var topInset: CGFloat = 0
+    /// A count the host moves to send the page back to its top (the window's Home).
+    var scrollsToTop = 0
     /// Tapping a topic link. Targets arrive as file names (`matte-engines.html`), the same
     /// way they are written in the Markdown.
     var onOpen: (String) -> Void = { _ in }
@@ -31,18 +33,25 @@ public struct HandbookDocumentView: View {
                 theme: HandbookTheme = HandbookTheme(),
                 images: URL? = nil,
                 topInset: CGFloat = 0,
+                scrollsToTop: Int = 0,
                 onOpen: @escaping (String) -> Void = { _ in }) {
         self.document = document
         self.theme = theme
         self.images = images
         self.topInset = topInset
+        self.scrollsToTop = scrollsToTop
         self.onOpen = onOpen
     }
 
+    /// The title's id, which the page scrolls back to.
+    private static let top = "handbook.document.top"
+
     public var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(styled(document.title))
+                    .id(Self.top)
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(theme.heading(colorScheme))
                     .padding(.bottom, 2)
@@ -59,6 +68,11 @@ public struct HandbookDocumentView: View {
             .padding(.bottom, 30)
             .padding(.top, topInset + 24)
             .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+        // A new count is a request to start from the top (the window's Home).
+        .onChange(of: scrollsToTop) {
+            withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(Self.top, anchor: .top) }
+        }
         }
         .environment(\.openURL, OpenURLAction { url in
             // Topic links are relative file names; anything absolute belongs to the browser.
