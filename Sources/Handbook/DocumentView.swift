@@ -25,6 +25,9 @@ public struct HandbookDocumentView: View {
     var topInset: CGFloat = 0
     /// A count the host moves to send the page back to its top (the window's Home).
     var scrollsToTop = 0
+    /// A count the host moves when a different page comes up. The page jumps to its top, so
+    /// a new topic never opens where the last one was left.
+    var page = 0
     /// Tapping a topic link. Targets arrive as file names (`matte-engines.html`), the same
     /// way they are written in the Markdown.
     var onOpen: (String) -> Void = { _ in }
@@ -34,12 +37,14 @@ public struct HandbookDocumentView: View {
                 images: URL? = nil,
                 topInset: CGFloat = 0,
                 scrollsToTop: Int = 0,
+                page: Int = 0,
                 onOpen: @escaping (String) -> Void = { _ in }) {
         self.document = document
         self.theme = theme
         self.images = images
         self.topInset = topInset
         self.scrollsToTop = scrollsToTop
+        self.page = page
         self.onOpen = onOpen
     }
 
@@ -72,6 +77,11 @@ public struct HandbookDocumentView: View {
         // A new count is a request to start from the top (the window's Home).
         .onChange(of: scrollsToTop) {
             withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(Self.top, anchor: .top) }
+        }
+        // A new page starts at its top at once; gliding there from mid-page would show the new
+        // page scrolling by.
+        .onChange(of: page) {
+            proxy.scrollTo(Self.top, anchor: .top)
         }
         }
         .environment(\.openURL, OpenURLAction { url in

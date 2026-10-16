@@ -17,6 +17,10 @@ final class HandbookBrowser {
     /// their top when it moves, so Home always lands at the start of both, even when the
     /// home page was already showing.
     private(set) var homeRequests = 0
+    /// Counts the times a page came up: a topic, Back, Forward, Home, search results. The page
+    /// starts at its top each time it moves, rather than wherever the last page was left. A
+    /// language switch re-renders the same page and leaves it alone.
+    private(set) var pageLoads = 0
 
     /// Our own history, and the reason we do not use a web view's: back and forward should
     /// walk the TOPICS the reader visited. Switching language re-renders the same topic, and
@@ -117,8 +121,9 @@ final class HandbookBrowser {
 
     /// Renders a history entry in the CURRENT language. Nothing here touches the history, so
     /// re-rendering after a language switch costs no step.
-    private func show(entry: String?) {
+    private func show(entry: String?, keepingPlace: Bool = false) {
         guard let book else { return }
+        if !keepingPlace { pageLoads += 1 }
         if let entry, let source = book.markdown(for: entry) {
             document = HandbookMarkdown.parse(source)
         } else {
@@ -137,7 +142,7 @@ final class HandbookBrowser {
         query = ""
         // Re-render the SAME entry, so the reader stays on the topic they were reading.
         let entry = currentTopic
-        show(entry: topics.contains(where: { $0.id == entry }) ? entry : nil)
+        show(entry: topics.contains(where: { $0.id == entry }) ? entry : nil, keepingPlace: true)
     }
 
     // ── Contents and search ───────────────────────────────────────────────────
@@ -172,6 +177,7 @@ final class HandbookBrowser {
         // Results are a rendered page, not a history entry: Back should return to the topic
         // the reader came from, not to a list they have already left.
         let ui = book?.chrome.ui
+        pageLoads += 1
         document = HandbookDocument(
             title: String(format: ui?.resultsFor ?? "Results for “%@”", needle),
             blocks: hits.isEmpty
@@ -269,7 +275,8 @@ public struct HandbookWindow: View {
                                  theme: configuration.theme,
                                  images: browser.book?.topics.appending(path: "images"),
                                  topInset: Self.barHeight,
-                                 scrollsToTop: browser.homeRequests) { topic in
+                                 scrollsToTop: browser.homeRequests,
+                                 page: browser.pageLoads) { topic in
                     if topic == "index" { browser.loadHome() } else { browser.open(topic: topic) }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

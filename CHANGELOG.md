@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.6
+
+- A new page starts at its top: opening a topic, going Back or Forward, or searching no longer lands mid-page where the last page was left. A language switch keeps the place.
+
 ## 1.6.5
 
 - Home scrolls the contents list and the page back to their top, even when the home page is already the one showing.

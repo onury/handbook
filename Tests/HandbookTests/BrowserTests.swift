@@ -169,4 +169,24 @@ final class BrowserTests: XCTestCase {
         XCTAssertEqual(browser.homeRequests, 2)
         XCTAssertNil(browser.currentTopic)
     }
+
+    func testEveryNewPageStartsAtTheTopButALanguageSwitchKeepsThePlace() throws {
+        let browser = try browser()
+        browser.start()
+        var loads = browser.pageLoads
+        browser.open(topic: "masks")
+        XCTAssertEqual(browser.pageLoads, loads + 1)
+        browser.open(topic: "export")
+        XCTAssertEqual(browser.pageLoads, loads + 2)
+        browser.goBack()
+        XCTAssertEqual(browser.pageLoads, loads + 3)
+        browser.goForward()
+        XCTAssertEqual(browser.pageLoads, loads + 4)
+        loads = browser.pageLoads
+        browser.select(language: "tr")
+        XCTAssertEqual(browser.pageLoads, loads)
+        browser.query = "Kenar"
+        browser.runSearch()
+        XCTAssertEqual(browser.pageLoads, loads + 1)
+    }
 }
