@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.0
+
+- Tables lay their columns out by what they hold: a column of short cells (keys, a command's name, a badge) stays on one line, the columns of sentences share the rest of the width and wrap. A table never runs past its page; one with a long middle column used to squeeze the last to a word a line, or push the window wider than the screen.
+- `HandbookIcons.navigationScale` draws Back and Forward a size up from the other toolbar glyphs, 1.35 by default.
+- `HandbookConfiguration.followsOpener` makes the help window a child of the window it was opened from: it moves and minimizes with it, at its level, and never stays over another app. Off by default.
+- The search field wears the house's text field focus: a 2-point ring on its edge and a soft halo of the accent under it.
+- The window opens with nothing focused, so the system no longer readies an empty AutoFill panel under the search field at launch.
+- Each page opens at its top, a scroll view of its own; the jump to the top could run before the new page was laid out and leave the last page's place. Home scrolls to the page's true top rather than its title, which slid under the bar.
+
 ## 1.6.6
 
 - A new page starts at its top: opening a topic, going Back or Forward, or searching no longer lands mid-page where the last page was left. A language switch keeps the place.
@@ -65,4 +74,4 @@ First release.
 - Per-language books discovered from the bundle, with a picker that switches instantly and keeps the reader on their topic.
 - Window labels per locale, so the chrome follows the help language rather than the app's.
 - The app's topics in the Help menu's search field via `NSUserInterfaceItemSearching`, with selection handled in-app.
-- Configurable theme; every colour defaults to being derived from the system accent.
+- Configurable theme; every color defaults to being derived from the system accent.

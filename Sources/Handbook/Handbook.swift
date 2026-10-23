@@ -22,6 +22,10 @@ public struct HandbookConfiguration: Sendable {
     /// Whether a long topic title wraps to a second line in the contents
     /// sidebar (the default) or is cut short on one line.
     public var sidebarWrapsTitles: Bool
+    /// Whether the help window rides with the window it was opened from: a child window of
+    /// it, moved and minimized with it, at its level, so it stays over its own app and never
+    /// over another one. Off, it is a window of its own, as before.
+    public var followsOpener: Bool
 
     public init(bundle: Bundle = .main,
                 topicsDirectory: String = "topics",
@@ -30,7 +34,8 @@ public struct HandbookConfiguration: Sendable {
                 languagePicker: HandbookLanguagePicker = .automatic,
                 icons: HandbookIcons = HandbookIcons(),
                 theme: HandbookTheme = HandbookTheme(),
-                sidebarWrapsTitles: Bool = true) {
+                sidebarWrapsTitles: Bool = true,
+                followsOpener: Bool = false) {
         self.bundle = bundle
         self.topicsDirectory = topicsDirectory
         self.chromeDirectory = chromeDirectory
@@ -39,6 +44,7 @@ public struct HandbookConfiguration: Sendable {
         self.icons = icons
         self.theme = theme
         self.sidebarWrapsTitles = sidebarWrapsTitles
+        self.followsOpener = followsOpener
     }
 }
 
@@ -78,6 +84,9 @@ public struct HandbookIcons: Sendable {
     /// 24pt set reads smaller than an SF Symbol at the same point size — so a host that swaps
     /// the artwork usually wants to nudge the scale with it.
     public var scale: CGFloat
+    /// Back and Forward's own multiple, on top of `scale`: a chevron is a small mark on its
+    /// grid and read a size smaller than the sidebar and home glyphs beside it at one size.
+    public var navigationScale: CGFloat
 
     public init(sidebar: String = "sidebar.leading",
                 back: String = "chevron.backward",
@@ -85,7 +94,8 @@ public struct HandbookIcons: Sendable {
                 home: String = "house",
                 search: String = "magnifyingglass",
                 clear: String = "xmark.circle.fill",
-                scale: CGFloat = 1) {
+                scale: CGFloat = 1,
+                navigationScale: CGFloat = 1.35) {
         self.sidebar = sidebar
         self.back = back
         self.forward = forward
@@ -93,6 +103,7 @@ public struct HandbookIcons: Sendable {
         self.search = search
         self.clear = clear
         self.scale = scale
+        self.navigationScale = navigationScale
     }
 }
 
@@ -212,17 +223,73 @@ public final class HandbookLauncher {
     public internal(set) var pendingTopic: String?
     public internal(set) var pendingSearch: String?
 
+    /// The window the book was last opened from, which a window that `followsOpener` rides with.
+    public internal(set) weak var opener: NSWindow?
+    /// The help window, once it is on screen and follows its opener.
+    @ObservationIgnored weak var window: NSWindow?
+
     private init() {}
 
     /// Opens the book, optionally on a specific topic (the file name without `.md`).
     public func open(topic: String? = nil) {
         pendingTopic = topic
+        noteOpener()
         openWindow?()
     }
 
     /// Opens the book showing results for a query.
     public func open(search: String) {
         pendingSearch = search
+        noteOpener()
         openWindow?()
+    }
+
+    /// The window in front as the book is asked for, never the book itself or a panel; an
+    /// open book that follows moves to it.
+    func noteOpener() {
+        let candidates = [NSApp.keyWindow, NSApp.mainWindow].compactMap { $0 }
+        if let front = candidates.first(where: { $0 !== window && !($0 is NSPanel) }) { opener = front }
+        attach()
+    }
+
+    /// The help window made a child of its opener, at the opener's level, when it follows one.
+    func attach() {
+        guard let window, let opener, opener !== window else { return }
+        if window.parent !== opener {
+            window.parent?.removeChildWindow(window)
+            opener.addChildWindow(window, ordered: .above)
+            watch(opener)
+        }
+        window.level = opener.level
+    }
+
+    @ObservationIgnored private var watching: [NSObjectProtocol] = []
+
+    /// A child window is not reliably taken down with a minimized parent, so the book does it
+    /// itself: out as its opener goes to the Dock, back as it returns; and when the opener
+    /// closes, the book lets go of it and stays a window of its own.
+    private func watch(_ opener: NSWindow) {
+        watching.forEach(NotificationCenter.default.removeObserver)
+        let center = NotificationCenter.default
+        watching = [
+            center.addObserver(forName: NSWindow.willMiniaturizeNotification, object: opener, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.window?.orderOut(nil) }
+            },
+            center.addObserver(forName: NSWindow.didDeminiaturizeNotification, object: opener, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self, let window = self.window, let opener = self.opener else { return }
+                    if window.parent !== opener { opener.addChildWindow(window, ordered: .above) }
+                    window.orderFront(nil)
+                }
+            },
+            center.addObserver(forName: NSWindow.willCloseNotification, object: opener, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self, let window = self.window else { return }
+                    window.parent?.removeChildWindow(window)
+                    window.level = .normal
+                    self.opener = nil
+                }
+            },
+        ]
     }
 }

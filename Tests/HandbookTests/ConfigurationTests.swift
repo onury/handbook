@@ -19,6 +19,8 @@ final class ConfigurationTests: XCTestCase {
     func testSidebarWrapsTitlesUnlessTurnedOff() {
         XCTAssertTrue(HandbookConfiguration().sidebarWrapsTitles)
         XCTAssertFalse(HandbookConfiguration(sidebarWrapsTitles: false).sidebarWrapsTitles)
+        XCTAssertFalse(HandbookConfiguration().followsOpener, "a window of its own unless the host asks")
+        XCTAssertTrue(HandbookConfiguration(followsOpener: true).followsOpener)
     }
 
     func testIconsDefaultToSymbols() {
@@ -30,6 +32,7 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertEqual(icons.search, "magnifyingglass")
         XCTAssertEqual(icons.clear, "xmark.circle.fill")
         XCTAssertEqual(icons.scale, 1)
+        XCTAssertEqual(icons.navigationScale, 1.35, "the chevrons read a size up from the other glyphs")
     }
 
     /// A picker with a single choice is a control that does nothing, so `automatic` shows it

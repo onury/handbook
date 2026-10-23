@@ -227,7 +227,7 @@ public struct HandbookWindow: View {
         .ignoresSafeArea(.container, edges: .top)
         .frame(minWidth: 620, minHeight: 460)
         .background(Color(nsColor: .windowBackgroundColor))
-        .background(WindowConfigurator())
+        .background(WindowConfigurator(followsOpener: configuration.followsOpener))
         .task {
             if browser.document == nil { browser.start() }
             consumePendingRequest()
@@ -390,10 +390,12 @@ private struct HandbookBar: View {
             }
 
             HStack(spacing: 2) {
-                barButton(configuration.icons.back, ui.back, enabled: browser.canGoBack) {
+                barButton(configuration.icons.back, ui.back, enabled: browser.canGoBack,
+                          scale: configuration.icons.navigationScale) {
                     browser.goBack()
                 }
-                barButton(configuration.icons.forward, ui.forward, enabled: browser.canGoForward) {
+                barButton(configuration.icons.forward, ui.forward, enabled: browser.canGoForward,
+                          scale: configuration.icons.navigationScale) {
                     browser.goForward()
                 }
             }
@@ -509,9 +511,9 @@ private struct HandbookBar: View {
     }
 
     private func barButton(_ symbol: String, _ label: String,
-                           enabled: Bool, action: @escaping () -> Void) -> some View {
+                           enabled: Bool, scale: CGFloat = 1, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Self.glyph(symbol, scale: configuration.icons.scale)
+            Self.glyph(symbol, scale: configuration.icons.scale * scale)
                 .frame(width: 32, height: 32)
                 .contentShape(Circle())
         }

@@ -6,6 +6,9 @@ import SwiftUI
 /// Makes the host window's titlebar transparent so our bar reads as the titlebar, and lets
 /// the window be dragged by its background.
 struct WindowConfigurator: NSViewRepresentable {
+    /// Whether the window rides with the one it was opened from (`HandbookConfiguration`).
+    var followsOpener = false
+
     /// How far to nudge the traffic lights in from the window corner, so they sit on the
     /// bar's line rather than crowded into it.
     private static let inset = CGSize(width: 12, height: 10)
@@ -21,6 +24,11 @@ struct WindowConfigurator: NSViewRepresentable {
             window.isMovableByWindowBackground = false
             context.coordinator.apply(to: window)
             context.coordinator.observe(window)
+            context.coordinator.holdLaunchFocus(window)
+            if followsOpener {
+                HandbookLauncher.shared.window = window
+                HandbookLauncher.shared.attach()
+            }
         }
         return view
     }
@@ -36,6 +44,38 @@ struct WindowConfigurator: NSViewRepresentable {
         /// resize and focus change walked the buttons steadily down the window until they
         /// fell out of the titlebar and stopped responding to clicks entirely.
         private var origins: [NSWindow.ButtonType: NSPoint] = [:]
+        private var keyed = false
+
+        /// The window opens with its search field not focused (1.7.0). AppKit hands a new
+        /// window's focus to its first text field, and the moment a field holds it the system
+        /// readies AutoFill for it: a panel that on some launches came up empty under the
+        /// field. No initial responder and a held key-view loop, then, and the field's focus
+        /// taken back again in the window's first key moment, the same turn, since the panel is
+        /// readied before the next one; from then on the loop is AppKit's again. A click still
+        /// reaches the field.
+        @MainActor
+        func holdLaunchFocus(_ window: NSWindow) {
+            window.autorecalculatesKeyViewLoop = false
+            window.initialFirstResponder = nil
+            Self.dropFieldFocus(in: window)
+            tokens.append(NotificationCenter.default.addObserver(
+                forName: NSWindow.didBecomeKeyNotification, object: window, queue: nil
+            ) { [weak self] note in
+                guard let window = note.object as? NSWindow else { return }
+                MainActor.assumeIsolated {
+                    guard let self, !self.keyed else { return }
+                    self.keyed = true
+                    Self.dropFieldFocus(in: window)
+                    window.autorecalculatesKeyViewLoop = true
+                }
+            })
+        }
+
+        @MainActor
+        static func dropFieldFocus(in window: NSWindow) {
+            guard let responder = window.firstResponder, responder is NSText || responder is NSTextField else { return }
+            window.makeFirstResponder(nil)
+        }
 
         func observe(_ window: NSWindow) {
             let center = NotificationCenter.default
@@ -99,8 +139,8 @@ extension View {
 }
 
 extension View {
-    /// The search field's capsule: a quiet flat fill, no glass, and the Mac's focus ring in
-    /// the theme's accent while the field has the cursor.
+    /// The search field's capsule: a quiet flat fill, no glass, and the house's text field
+    /// focus in the theme's accent while the field has the cursor: the ring and its halo.
     func searchCapsule(focused: Bool, ring: Color) -> some View {
         modifier(SearchCapsuleStyle(focused: focused, ring: ring))
     }
@@ -114,15 +154,24 @@ private struct SearchCapsuleStyle: ViewModifier {
     /// One structure whatever the focus: only values change. A style that swapped branches
     /// on focus rebuilt the field it wraps, which dropped the focus, which swapped the branch
     /// back — a loop that froze the window and brought it down in layout (1.4.1).
+    /// The halo's strength in each appearance: the house's text fields' glow (CuteUI's, its
+    /// preset's `fieldFocusGlowColor`), the accent at these shares.
+    static func glow(dark: Bool) -> Double { dark ? 0.38 : 0.47 }
+
+    /// The house's text field focus (1.7.0): a 2-point ring in the accent ON the capsule's edge,
+    /// so focus never grows the field and nudges its neighbors, over a soft halo of the accent
+    /// under it. Only the ring glows, never the text in the field.
     func body(content: Content) -> some View {
-        content
-            .background(Capsule().fill(.primary.opacity(colorScheme == .dark ? 0.07 : 0.05)))
-            // The focus ring as the system draws one: a soft band just outside the edge.
-            .overlay(
+        let dark = colorScheme == .dark
+        return content
+            .background(Capsule().fill(.primary.opacity(dark ? 0.07 : 0.05)))
+            .background {
                 Capsule()
-                    .stroke(ring.opacity(focused ? 0.6 : 0), lineWidth: 1.5)
-                    .padding(-0.75)
-            )
+                    .strokeBorder(ring, lineWidth: 2)
+                    .shadow(color: ring.opacity(Self.glow(dark: dark)), radius: 5, y: 1)
+                    .opacity(focused ? 1 : 0)
+            }
+            .overlay(Capsule().strokeBorder(ring.opacity(focused ? 1 : 0), lineWidth: 2))
             .animation(.easeOut(duration: 0.15), value: focused)
     }
 }

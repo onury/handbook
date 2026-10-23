@@ -4,7 +4,7 @@ An in-app help book for macOS apps. Write your help as Markdown, ship it in your
 
 No web view, no Apple Help Book, no build step.
 
-## Why not an Apple Help Book
+## Why Not an Apple Help Book
 
 Two things pushed this into existence, both measured rather than assumed.
 
@@ -20,7 +20,7 @@ So Handbook parses the Markdown and draws it in SwiftUI.
 .package(url: "https://github.com/onury/handbook", from: "1.0.0")
 ```
 
-## Content layout
+## Content Layout
 
 Ship two folder references in your app bundle:
 
@@ -96,7 +96,7 @@ Install the opener once, from a view that has SwiftUI's `openWindow`:
 .onAppear { HandbookLauncher.shared.openWindow = { openWindow(id: "help") } }
 ```
 
-### Your topics in the Help menu
+### Your Topics in the Help Menu
 
 `NSUserInterfaceItemSearching` has been public since 10.6 and lets an app answer the Help menu's search field directly. Registering a handler also stops that menu padding its results with Apple's own macOS help topics — which is what makes it look broken in an app with no help book.
 
@@ -131,11 +131,19 @@ Toolbar glyphs are configurable the same way:
 HandbookConfiguration(icons: HandbookIcons(sidebar: "IconSidebar", home: "IconHome", scale: 1.15))
 ```
 
-Each defaults to an SF Symbol name, so the package ships no artwork and carries no icon licence. Pass a name from your own asset catalog and it is used instead — an asset is resolved first, with the symbol as the fallback. `scale` multiplies every toolbar glyph, since a stroked 24pt set reads smaller than an SF Symbol at the same point size.
+Each defaults to an SF Symbol name, so the package ships no artwork and carries no icon license. Pass a name from your own asset catalog and it is used instead — an asset is resolved first, with the symbol as the fallback. `scale` multiplies every toolbar glyph, since a stroked 24pt set reads smaller than an SF Symbol at the same point size. `navigationScale` multiplies Back and Forward on top of it (1.35 by default): a chevron is a small mark and reads a size smaller than the glyphs beside it.
 
-Left alone, every colour follows the accent the reader chose in System Settings — headings lightened toward white on a dark page and toward black on a light one, so they lead without competing with body text.
+The help window can ride with the window it was opened from, so it moves and minimizes with it and never stays over another app:
 
-## The Markdown subset
+```swift
+HandbookConfiguration(followsOpener: true)
+```
+
+Off by default, the help window is a window of its own.
+
+Left alone, every color follows the accent the reader chose in System Settings — headings lightened toward white on a dark page and toward black on a light one, so they lead without competing with body text.
+
+## The Markdown Subset
 
 Headings, paragraphs, bullet and numbered lists, tables, blockquote notes, fenced code, figures (`![caption](shot.png)`), and reference entries written as `*Term* — description`. Inline **bold**, *italic*, `code` and links go through `AttributedString`'s own Markdown support.
 
