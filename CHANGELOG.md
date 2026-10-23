@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0
+
+- **The help window rides with the window it was opened from by default** (`followsOpener` is `true`): it moves and minimizes with it, at its level, and never stays over another app. An app whose help opens from the menu bar, with no window to ride with, sets `followsOpener: false`.
+- Home brings the contents list back to its true top; the Home row slid under the bar.
+
 ## 1.7.0
 
 - Tables lay their columns out by what they hold: a column of short cells (keys, a command's name, a badge) stays on one line, the columns of sentences share the rest of the width and wrap. A table never runs past its page; one with a long middle column used to squeeze the last to a word a line, or push the window wider than the screen.

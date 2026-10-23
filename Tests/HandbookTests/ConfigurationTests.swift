@@ -19,8 +19,8 @@ final class ConfigurationTests: XCTestCase {
     func testSidebarWrapsTitlesUnlessTurnedOff() {
         XCTAssertTrue(HandbookConfiguration().sidebarWrapsTitles)
         XCTAssertFalse(HandbookConfiguration(sidebarWrapsTitles: false).sidebarWrapsTitles)
-        XCTAssertFalse(HandbookConfiguration().followsOpener, "a window of its own unless the host asks")
-        XCTAssertTrue(HandbookConfiguration(followsOpener: true).followsOpener)
+        XCTAssertTrue(HandbookConfiguration().followsOpener, "it rides with its opener unless the host says not")
+        XCTAssertFalse(HandbookConfiguration(followsOpener: false).followsOpener)
     }
 
     func testIconsDefaultToSymbols() {

@@ -24,7 +24,7 @@ public struct HandbookConfiguration: Sendable {
     public var sidebarWrapsTitles: Bool
     /// Whether the help window rides with the window it was opened from: a child window of
     /// it, moved and minimized with it, at its level, so it stays over its own app and never
-    /// over another one. Off, it is a window of its own, as before.
+    /// over another one (the default since 1.8.0). Off, it is a window of its own.
     public var followsOpener: Bool
 
     public init(bundle: Bundle = .main,
@@ -35,7 +35,7 @@ public struct HandbookConfiguration: Sendable {
                 icons: HandbookIcons = HandbookIcons(),
                 theme: HandbookTheme = HandbookTheme(),
                 sidebarWrapsTitles: Bool = true,
-                followsOpener: Bool = false) {
+                followsOpener: Bool = true) {
         self.bundle = bundle
         self.topicsDirectory = topicsDirectory
         self.chromeDirectory = chromeDirectory

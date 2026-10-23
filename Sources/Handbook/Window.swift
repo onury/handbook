@@ -306,11 +306,13 @@ private struct HandbookSidebar: View {
     var body: some View {
         ScrollViewReader { proxy in
         ScrollView {
+            // The list's true top, above its margin, which Home scrolls back to: the Home row
+            // scrolled to the top edge slid under the bar (1.8.0).
+            Color.clear.frame(height: 0).id(Self.top)
             VStack(alignment: .leading, spacing: 1) {
                 // Named for what it does, not for the book — "Home" reads as a destination
                 // where the book's own title reads as a heading.
                 row(title: browser.book?.chrome.ui.home ?? "Home", topic: nil)
-                    .id(Self.top)
                 ForEach(browser.topics) { topic in
                     row(title: topic.title, topic: topic.id)
                 }

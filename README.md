@@ -133,13 +133,11 @@ HandbookConfiguration(icons: HandbookIcons(sidebar: "IconSidebar", home: "IconHo
 
 Each defaults to an SF Symbol name, so the package ships no artwork and carries no icon license. Pass a name from your own asset catalog and it is used instead — an asset is resolved first, with the symbol as the fallback. `scale` multiplies every toolbar glyph, since a stroked 24pt set reads smaller than an SF Symbol at the same point size. `navigationScale` multiplies Back and Forward on top of it (1.35 by default): a chevron is a small mark and reads a size smaller than the glyphs beside it.
 
-The help window can ride with the window it was opened from, so it moves and minimizes with it and never stays over another app:
+The help window rides with the window it was opened from, so it moves and minimizes with it and never stays over another app. An app whose help has no window to ride with (one opened from the menu bar) turns it off, and the help window is a window of its own:
 
 ```swift
-HandbookConfiguration(followsOpener: true)
+HandbookConfiguration(followsOpener: false)
 ```
-
-Off by default, the help window is a window of its own.
 
 Left alone, every color follows the accent the reader chose in System Settings — headings lightened toward white on a dark page and toward black on a light one, so they lead without competing with body text.
 
